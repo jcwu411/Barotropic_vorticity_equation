@@ -98,21 +98,21 @@ def plot_2d(n, x, y, color, lw, lb,
     plt.close()
 
 
-def plot_contour(x, y, z, xl="X", yl="Y", steps=1):
+def plot_contour(x, y, z, xl=r"$X$", yl=r"$Y$", steps=1):
     xx, yy = np.meshgrid(x, y)
     plt.contourf(xx, yy, z.T, cmap='seismic', levels=np.linspace(-1.0, 1.0, 32),
                  extend='both')
     plt.xlabel(xl)
     plt.ylabel(yl)
-    plt.title("t = " + str(steps))
+    plt.title('t = {0:.1f} s'.format(steps * 0.1))
     cb = plt.colorbar()
-    cb.set_ticks([-1.0, -0.5, 0.0, 0.5, 1.0])
-    cb.set_label(r'$\zeta$')
+    cb.set_ticks([-1, -0.8, -0.6, -0.4, 0.2, 0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+    cb.set_label(r'$\zeta$', rotation=0)
     plt.show()
     plt.close()
 
 
-def plot_contour_ani(x, y, z, xl=r"$X$", yl=r"$Y$", steps=100):
+def plot_contour_ani(x, y, z, xl=r"$X$", yl=r"$Y$", steps=100, fn="test.mp4"):
     metadata = dict(title='Movie Test', artist='Matplotlib', comment='Movie support!')
     writer = FFMpegWriter(fps=15, metadata=metadata)
 
@@ -120,14 +120,13 @@ def plot_contour_ani(x, y, z, xl=r"$X$", yl=r"$Y$", steps=100):
     fig = plt.figure()
     plt.xlabel(xl)
     plt.ylabel(yl)
-    plt.contourf(xx, yy, z[0, :, :].T,
-                 cmap='seismic', levels=np.linspace(-1.0, 1.0, 32),
+    plt.contourf(xx, yy, z[0, :, :].T, cmap='seismic', levels=np.linspace(-1.0, 1.0, 32),
                  extend='both')
     cb = plt.colorbar()
-    cb.set_ticks([-1.0, -0.5, 0.0, 0.5, 1.0])
-    cb.set_label(r'$\zeta$')
+    cb.set_ticks([-1, -0.8, -0.6, -0.4, 0.2, 0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+    cb.set_label(r'$\zeta$', rotation=0)
 
-    with writer.saving(fig, "test.mp4", 100):
+    with writer.saving(fig, fn, 100):
         for i in range(steps):
             if i % 10 == 0:
                 plt.contourf(xx, yy, z[i, :, :].T,

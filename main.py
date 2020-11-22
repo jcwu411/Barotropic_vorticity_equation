@@ -9,21 +9,26 @@ import plot_data
 import ode_solver2
 
 
-def init(nx, ny):
+def init(nx, ny, turb=False):
+    # Initializing x-y grid
     x_grid = generate_grid(xb, nx)
     y_grid = generate_grid(yb, ny)
+
+    # Initializing zeta
     zeta_i = np.zeros((nx, ny))
     center_x = int(nx / 2)
     center_y = int(ny / 2)
-    width = 9
-    zeta_i[:, center_y:(center_y + width + 1)] = 1
-    zeta_i[:, (center_y - 1 - width):center_y] = -1
-    """
-    zeta_i[center_x, center_y] += 0.1
-    zeta_i[center_x - 1, center_y] += 0.1
-    zeta_i[center_x, center_y - 1] -= 0.1
-    zeta_i[center_x - 1, center_y - 1] -= 0.1
-    """
+    width = 10
+    zeta_i[:, center_y:(center_y + width)] = 1.0
+    zeta_i[:, (center_y - width):center_y] = -1.0
+
+    if turb:
+        intensity = 0.1
+        zeta_i[center_x, center_y] += intensity
+        zeta_i[center_x - 1, center_y] += intensity
+        zeta_i[center_x, center_y - 1] -= intensity
+        zeta_i[center_x - 1, center_y - 1] -= intensity
+
     return x_grid, y_grid, zeta_i
 
 
@@ -50,7 +55,6 @@ def lapace_tran(z):
 def ilapace_tran(z):
     c = np.fft.fft2(z)
     c = iK2 * c
-
     ilapace = np.fft.ifft2(c)
     return ilapace.real
 
@@ -78,17 +82,24 @@ def tend_bve(z):
 
 
 if __name__ == '__main__':
+    # Initial conditions
     Nx = 128
     Ny = 128
     kmax = int(Nx / 2)
     lmax = int(Ny / 2)
-    yb = 2*np.pi
-    xb = 2*np.pi
+    yb = 2*np.pi        # The boundary of y
+    xb = 2*np.pi        # The boundary of x
+    dt = 0.1            # unit: second
+    steps = 5000
+    ode_scheme = "rk4"
+    nu = 1e-4           # The vaule of nu
+
+    # Optional Setting
     save = False
     plt = False
-    ani = False
+    ani = True
 
-    x, y, zeta = init(Nx, Ny)
+    x, y, zeta = init(Nx, Ny, turb=True)
     dx = x[1] - x[0]
     dy = y[1] - y[0]
     kx_temp = complex(0.0, Nx * dx) * np.fft.fftfreq(Nx, d=dx)
@@ -102,20 +113,18 @@ if __name__ == '__main__':
     iK2 = 1 / K2_temp
     iK2[0, 0] = 0
 
-    dt = 0.1       # unit: second
-    steps = 0
-    ode_scheme = "rk4"
-    nu = 1e-4
-
     BVE = ode_solver2.Ode(zeta, tend_bve, dt, steps, debug=1)
     BVE.integrate(ode_scheme)
 
     if plt:
-        plot = (100, 200, 300, 400, 500, 1000, 1200, 2000, 3000, 4000, 5000)
+        plot = np.array((100, 200, 300, 400, 500, 1000, 2000, 5000))
         for i in range(len(plot)):
-            plot_data.plot_contour(x, y, BVE.trajectory[plot[i] - 1, :, :], xl="X", yl="Y", steps=plot[i])
+            plot_data.plot_contour(x, y, BVE.trajectory[plot[i] - 1, :, :],
+                                   xl=r"$Longitude$", yl=r"$Latitude$", steps=plot[i])
 
+    filename = 'bve_ani_center_turbulence_{0}_steps.mp4'.format(steps)
     if ani:
         print("\nPlot Process")
-        plot_data.plot_contour_ani(x, y, BVE.trajectory, steps=steps)
+        plot_data.plot_contour_ani(x, y, BVE.trajectory,
+                                   xl=r"$Longitude$", yl=r"$Latitude$", steps=steps, fn=filename)
 
