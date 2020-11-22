@@ -23,7 +23,6 @@ def init(nx, ny, turb=False):
     zeta_i[:, (center_y - width):center_y] = -1.0
 
     if turb:
-        intensity = 0.1
         zeta_i[center_x, center_y] += intensity
         zeta_i[center_x - 1, center_y] += intensity
         zeta_i[center_x, center_y - 1] -= intensity
@@ -98,8 +97,10 @@ if __name__ == '__main__':
     save = False
     plt = False
     ani = True
+    intensity = 0.01
+    turbulence = True
 
-    x, y, zeta = init(Nx, Ny, turb=True)
+    x, y, zeta = init(Nx, Ny, turb=turbulence)
     dx = x[1] - x[0]
     dy = y[1] - y[0]
     kx_temp = complex(0.0, Nx * dx) * np.fft.fftfreq(Nx, d=dx)
@@ -122,7 +123,7 @@ if __name__ == '__main__':
             plot_data.plot_contour(x, y, BVE.trajectory[plot[i] - 1, :, :],
                                    xl=r"$Longitude$", yl=r"$Latitude$", steps=plot[i])
 
-    filename = 'bve_ani_center_turbulence_{0}_steps.mp4'.format(steps)
+    filename = 'bve_ani_center_turb_intensity_{0}'.format(intensity) + '_{0}_steps.mp4'.format(steps)
     if ani:
         print("\nPlot Process")
         plot_data.plot_contour_ani(x, y, BVE.trajectory,
