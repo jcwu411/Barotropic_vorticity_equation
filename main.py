@@ -18,10 +18,12 @@ def init(nx, ny):
     width = 9
     zeta_i[:, center_y:(center_y + width + 1)] = 1
     zeta_i[:, (center_y - 1 - width):center_y] = -1
+    """
     zeta_i[center_x, center_y] += 0.1
     zeta_i[center_x - 1, center_y] += 0.1
     zeta_i[center_x, center_y - 1] -= 0.1
     zeta_i[center_x - 1, center_y - 1] -= 0.1
+    """
     return x_grid, y_grid, zeta_i
 
 
@@ -89,11 +91,10 @@ if __name__ == '__main__':
     x, y, zeta = init(Nx, Ny)
     dx = x[1] - x[0]
     dy = y[1] - y[0]
-    kx1d = complex(0.0, 2 * np.pi) * np.fft.fftfreq(Nx, d=dx)
-    ky1d = complex(0.0, 2 * np.pi) * np.fft.fftfreq(Ny, d=dy)
-    kx = kx1d[:, np.newaxis]
-    print(kx ** 2)
-    ky = ky1d[np.newaxis, :]
+    kx_temp = complex(0.0, Nx * dx) * np.fft.fftfreq(Nx, d=dx)
+    ky_temp = complex(0.0, Ny * dy) * np.fft.fftfreq(Ny, d=dy)
+    kx = kx_temp[:, np.newaxis]
+    ky = ky_temp[np.newaxis, :]
     K2 = kx ** 2 + ky ** 2
 
     K2_temp = K2
@@ -104,7 +105,7 @@ if __name__ == '__main__':
     dt = 0.1       # unit: second
     steps = 0
     ode_scheme = "rk4"
-    nu = 1.0e-4
+    nu = 1e-4
 
     BVE = ode_solver2.Ode(zeta, tend_bve, dt, steps, debug=1)
     BVE.integrate(ode_scheme)
