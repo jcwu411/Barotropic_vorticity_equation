@@ -29,11 +29,11 @@ class Ode:
         self.steps = steps + 1    # The initial value occupies one step!
         self.debug = debug
 
-        self.trajectory = np.ndarray(shape=(self.steps, self.dim), dtype=float)
-        self.trajectory[0, :] = np.array(iv, dtype=float)
+        self.trajectory = np.ndarray(shape=(self.steps, self.dim, self.dim), dtype=float)
+        self.trajectory[0, :, :] = np.array(iv, dtype=float)
 
-        if self.debug >= 1:
-            print("\nThe initial value =", iv)
+        if self.debug >= 2:
+            print("\nThe initial value =", self.trajectory[0, :, :])
 
     def integrate(self, scheme="rk4"):
         if self.debug >= 1:
@@ -41,26 +41,28 @@ class Ode:
         i = 0
         while i < self.steps-1:
             if scheme == "forward":
-                self.trajectory[i + 1, :] = self.scheme_forward(self.trajectory[i, :])
+                self.trajectory[i + 1, :, :] = self.scheme_forward(self.trajectory[i, :, :])
 
             elif scheme == "leapfrog":
                 if i == 0:
-                    self.trajectory[i + 1, :] = self.scheme_forward(self.trajectory[i, :])
+                    self.trajectory[i + 1, :, :] = self.scheme_forward(self.trajectory[i, :, :])
                 else:
-                    self.trajectory[i + 1, :] = self.scheme_leapfrog(self.trajectory[i, :], self.trajectory[i - 1, :])
+                    self.trajectory[i + 1, :, :] = self.scheme_leapfrog(self.trajectory[i, :, :]
+                                                                        , self.trajectory[i - 1, :, :])
 
             elif scheme == "ab2":
                 if i == 0:
-                    self.trajectory[i + 1, :] = self.scheme_forward(self.trajectory[i, :])
+                    self.trajectory[i + 1, :, :] = self.scheme_forward(self.trajectory[i, :, :])
                 else:
-                    self.trajectory[i + 1, :] = self.scheme_ab2(self.trajectory[i, :], self.trajectory[i - 1, :])
+                    self.trajectory[i + 1, :, :] = self.scheme_ab2(self.trajectory[i, :, :]
+                                                                   , self.trajectory[i - 1, :, :])
 
             elif scheme == "rk4":
-                self.trajectory[i + 1, :] = self.scheme_rk4(self.trajectory[i, :])
+                self.trajectory[i + 1, :, :] = self.scheme_rk4(self.trajectory[i, :, :])
 
-            if self.debug >= 2:
+            if self.debug >= 3:
                 print("step: "+str(i), end=", value: ")
-                print(self.trajectory[i + 1, :])
+                print(self.trajectory[i + 1, :, :])
 
             i = i + 1
 
@@ -83,8 +85,8 @@ class Ode:
     def scheme_rk4(self, x):
         # Runge-Kutta-4th-order
         q1 = self.dt * self.F(x)
-        q2 = self.dt * self.F(x+1/2*q1)
-        q3 = self.dt * self.F(x+1/2*q2)
-        q4 = self.dt * self.F(x+q3)
+        q2 = self.dt * self.F(x + 1 / 2 * q1)
+        q3 = self.dt * self.F(x + 1 / 2 * q2)
+        q4 = self.dt * self.F(x + q3)
         x_new = x + 1/6*(q1+2*q2+2*q3+q4)
         return x_new

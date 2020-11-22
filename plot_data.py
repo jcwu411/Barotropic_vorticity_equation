@@ -6,6 +6,8 @@ Created on 15/11/2020
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from matplotlib.animation import FFMpegWriter
 
 
 def plot_u(x, y, color, lw, lb,
@@ -96,11 +98,43 @@ def plot_2d(n, x, y, color, lw, lb,
     plt.close()
 
 
-def plot_contour(x, y, z, xl="X", yl="Y"):
+def plot_contour(x, y, z, xl="X", yl="Y", steps=1):
     xx, yy = np.meshgrid(x, y)
-    plt.contourf(xx, yy, z.T, 8)
+    plt.contourf(xx, yy, z.T, cmap='seismic', levels=np.linspace(-1.0, 1.0, 32),
+                 extend='both')
     plt.xlabel(xl)
     plt.ylabel(yl)
-    plt.colorbar()
+    plt.title("t = " + str(steps))
+    cb = plt.colorbar()
+    cb.set_ticks([-1.0, -0.5, 0.0, 0.5, 1.0])
+    cb.set_label(r'$\zeta$')
     plt.show()
+    plt.close()
+
+
+def plot_contour_ani(x, y, z, xl=r"$X$", yl=r"$Y$", steps=100):
+    metadata = dict(title='Movie Test', artist='Matplotlib', comment='Movie support!')
+    writer = FFMpegWriter(fps=15, metadata=metadata)
+
+    xx, yy = np.meshgrid(x, y)
+    fig = plt.figure()
+    plt.xlabel(xl)
+    plt.ylabel(yl)
+    plt.contourf(xx, yy, z[0, :, :].T,
+                 cmap='seismic', levels=np.linspace(-1.0, 1.0, 32),
+                 extend='both')
+    cb = plt.colorbar()
+    cb.set_ticks([-1.0, -0.5, 0.0, 0.5, 1.0])
+    cb.set_label(r'$\zeta$')
+
+    with writer.saving(fig, "test.mp4", 100):
+        for i in range(steps):
+            if i % 10 == 0:
+                plt.contourf(xx, yy, z[i, :, :].T,
+                             cmap='seismic', levels=np.linspace(-1.0, 1.0, 32),
+                             extend='both')
+                plt.title('t = {0:.1f} s'.format(i * 0.1))
+                print("i = ", i)
+                writer.grab_frame()
+
     plt.close()
